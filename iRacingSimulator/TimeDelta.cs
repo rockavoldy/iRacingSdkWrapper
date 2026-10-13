@@ -121,19 +121,26 @@ namespace iRacingSimulator
             Update(timestamp, temp);
         }
 
-        public void Update(Double timestamp, Double[] trackPosition) 
+        public void Update(Double timestamp, Double[] trackPosition)
         {
             // sanity check
+            // Guard against an uninitialised split table (arraySize is 0 when the
+            // track length could not be determined) and against telemetry arrays
+            // that are longer than the number of cars the split table was sized for.
+            if (trackPosition == null) return;
+            if (arraySize <= 0 || maxcars <= 0) return;
+
             if (timestamp > prevTimestamp)
             {
                 Int32 currentSplitPointer;
 
-                for (Int32 i = 0; i < trackPosition.Length; i++)
+                Int32 carCount = Math.Min(trackPosition.Length, maxcars);
+                for (Int32 i = 0; i < carCount; i++)
                 {
                     if (trackPosition[i] > 0)
                     {
                         // interpolate split border crossing
-                        currentSplitPointer = (Int32)Math.Floor((trackPosition[i] % 1) / splitLength);
+                        currentSplitPointer = SplitPointerFromPosition(trackPosition[i]);
 
                         if (currentSplitPointer != splitPointer[i])
                         {
@@ -211,6 +218,25 @@ namespace iRacingSimulator
             }
         }
 
+        /// <summary>
+        /// Converts a track position (lap distance percentage, normally 0..1) into a
+        /// split index clamped to the valid range of the split table.
+        /// The clamp is required because <see cref="splitLength"/> is a Single whose
+        /// rounding can make a position just below 1.0 map to an index equal to
+        /// arraySize, which would otherwise throw IndexOutOfRangeException on
+        /// splits[i][arraySize].
+        /// </summary>
+        private Int32 SplitPointerFromPosition(Double trackPosition)
+        {
+            Double fraction = trackPosition % 1;
+            if (fraction < 0) fraction += 1; // handle negative positions defensively
+
+            Int32 pointer = (Int32)Math.Floor(fraction / splitLength);
+            if (pointer < 0) pointer = 0;
+            if (pointer > arraySize - 1) pointer = arraySize - 1;
+            return pointer;
+        }
+
         public TimeSpan GetBestLapDelta(Single trackPosition)
         {
             return GetBestLapDelta((Double)trackPosition);
@@ -218,9 +244,9 @@ namespace iRacingSimulator
 
         public TimeSpan GetBestLapDelta(Double trackPosition)
         {
-            if (validbestlap)
+            if (validbestlap && arraySize > 0 && followed >= 0 && followed < maxcars)
             {
-                Int32 currentSplitPointer = (Int32)Math.Floor((Math.Abs(trackPosition) % 1) / splitLength);
+                Int32 currentSplitPointer = SplitPointerFromPosition(Math.Abs(trackPosition));
                 Double delta;
 
                 if (currentSplitPointer == 0)
@@ -241,7 +267,10 @@ namespace iRacingSimulator
         public TimeSpan GetDelta(Int32 caridx1, Int32 caridx2)
         {
             // validate
-            if (caridx1 < maxcars && caridx2 < maxcars && caridx1 >= 0 && caridx2 >= 0)
+            if (arraySize > 0
+                && caridx1 < maxcars && caridx2 < maxcars
+                && caridx1 >= 0 && caridx2 >= 0
+                && splits[caridx1].Length > 0)
             {
                 // comparing latest finished split
                 Int32 comparedSplit = splitPointer[caridx1];

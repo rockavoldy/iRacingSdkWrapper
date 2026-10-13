@@ -336,9 +336,15 @@ namespace iRacingSimulator
         private void UpdateTimeDelta()
         {
             if (_timeDelta == null) return;
+            if (_telemetry == null) return;
+
+            // CarIdxLapDistPct may be unavailable (null) in some replay/session states;
+            // passing it through would throw inside TimeDelta.Update.
+            var lapDistPct = _telemetry.CarIdxLapDistPct.Value;
+            if (lapDistPct == null) return;
 
             // Update the positions of all cars
-            _timeDelta.Update(_telemetry.SessionTime.Value, _telemetry.CarIdxLapDistPct.Value);
+            _timeDelta.Update(_telemetry.SessionTime.Value, lapDistPct);
 
             // Order drivers by live position
             var drivers = _drivers.OrderBy(d => d.Live.Position).ToList();
