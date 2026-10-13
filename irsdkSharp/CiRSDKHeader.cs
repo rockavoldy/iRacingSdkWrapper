@@ -19,6 +19,8 @@ namespace iRSDKSharp
         public const int HVarHeaderOffsetOffset = 28;
         public const int HNumBufOffset = 32;
         public const int HBufLenOffset = 36;
+        public const int HCurBufTickCountOffset = 40;
+        public const int HCurBufOffset = 44;
 
         MemoryMappedViewAccessor FileMapView = null;
 
@@ -78,6 +80,22 @@ namespace iRSDKSharp
         public int BufferLength
         {
             get { return FileMapView.ReadInt32(HBufLenOffset); }
+        }
+
+        /// <summary>
+        /// Stashed copy of the current tick count, updated when new data is written.
+        /// </summary>
+        public int CurBufTickCount
+        {
+            get { return FileMapView.ReadInt32(HCurBufTickCountOffset); }
+        }
+
+        /// <summary>
+        /// Index of the most recently written buffer (0 to BufferCount-1).
+        /// </summary>
+        public int CurBuf
+        {
+            get { return FileMapView.ReadByte(HCurBufOffset); }
         }
 
         public int Buffer

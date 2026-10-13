@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "fmNmZWRRMLU=",
+  "success": true,
+  "projectFilePath": "/Users/akhmad/Repositories/iRacingSdkWrapper/Samples/iRacingSimulator.Examples.WPFDriverGrid/iRacingSimulator.Examples.WPFDriverGrid.csproj",
+  "expectedPackageFiles": [
+    "/Users/akhmad/.nuget/packages/microsoft.netframework.referenceassemblies/1.0.3/microsoft.netframework.referenceassemblies.1.0.3.nupkg.sha512",
+    "/Users/akhmad/.nuget/packages/microsoft.netframework.referenceassemblies.net48/1.0.3/microsoft.netframework.referenceassemblies.net48.1.0.3.nupkg.sha512",
+    "/Users/akhmad/.nuget/packages/yamldotnet/6.0.0/yamldotnet.6.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}

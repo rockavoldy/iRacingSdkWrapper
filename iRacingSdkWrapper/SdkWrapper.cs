@@ -46,6 +46,8 @@ namespace iRacingSdkWrapper
             this.Chat = new ChatControl(this);
             this.Textures = new TextureControl(this);
             this.TelemetryRecording = new TelemetryRecordingControl(this);
+            this.FFB = new FFBControl(this);
+            this.VideoCapture = new VideoCaptureControl(this);
         }
 
         #region Properties
@@ -139,6 +141,16 @@ namespace iRacingSdkWrapper
         /// Provides control over the telemetry recording system.
         /// </summary>
         public TelemetryRecordingControl TelemetryRecording { get; private set; }
+
+        /// <summary>
+        /// Provides control over the force feedback system.
+        /// </summary>
+        public FFBControl FFB { get; private set; }
+
+        /// <summary>
+        /// Provides control over the video capture system.
+        /// </summary>
+        public VideoCaptureControl VideoCapture { get; private set; }
 
         #endregion
 

@@ -37,6 +37,16 @@ namespace iRacingSimulator
         public SessionStates State { get; set; }
 
         /// <summary>
+        /// True if the pit stop is allowed (caution lights not out).
+        /// </summary>
+        public bool PitsOpen { get; set; }
+
+        /// <summary>
+        /// Current pacing mode, or NotPacing if not pacing.
+        /// </summary>
+        public PaceModes PaceMode { get; set; }
+
+        /// <summary>
         /// Is the checkered flag shown? (e.g. winner has passed the finish, but other drivers may still be racing)
         /// </summary>
         public bool IsCheckered { get; set; }
@@ -75,6 +85,11 @@ namespace iRacingSimulator
             this.SessionTime = telemetry.SessionTime.Value;
             this.TimeRemaining = telemetry.SessionTimeRemain.Value;
             this.Flags = telemetry.SessionFlags.Value;
+
+            if (telemetry.PitsOpen.Exists)
+                this.PitsOpen = telemetry.PitsOpen.Value;
+            if (telemetry.PaceMode.Exists)
+                this.PaceMode = telemetry.PaceMode.Value;
         }
 
         public void UpdateState(SessionStates state)

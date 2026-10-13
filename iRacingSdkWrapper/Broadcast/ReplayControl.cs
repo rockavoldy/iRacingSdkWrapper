@@ -64,6 +64,18 @@ namespace iRacingSdkWrapper.Broadcast
         }
 
         /// <summary>
+        /// Search the replay tape for the specified session number and session time.
+        /// This performs a search and not a direct jump, so it may take a while.
+        /// </summary>
+        /// <param name="sessionNum">The session number to search for.</param>
+        /// <param name="sessionTimeMS">The session time to search for, in milliseconds.</param>
+        public void SearchSessionTime(int sessionNum, int sessionTimeMS)
+        {
+            Broadcast(BroadcastMessageTypes.ReplaySearchSessionTime,
+                sessionNum, sessionTimeMS);
+        }
+
+        /// <summary>
         /// Pause the replay.
         /// </summary>
         public void Pause()

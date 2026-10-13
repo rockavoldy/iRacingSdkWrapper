@@ -8,7 +8,25 @@ using System.IO.MemoryMappedFiles;
 
 namespace iRSDKSharp
 {
-    public enum BroadcastMessageTypes { CamSwitchPos = 0, CamSwitchNum, CamSetState, ReplaySetPlaySpeed, ReplaySetPlayPosition, ReplaySearch, ReplaySetState, ReloadTextures, ChatCommand, PitCommand, TelemCommand };
+    public enum BroadcastMessageTypes
+    {
+        CamSwitchPos = 0,
+        CamSwitchNum,
+        CamSetState,
+        ReplaySetPlaySpeed,
+        ReplaySetPlayPosition,
+        ReplaySearch,
+        ReplaySetState,
+        ReloadTextures,
+        ChatCommand,
+        PitCommand,
+        TelemCommand,
+        FFBCommand,
+        ReplaySearchSessionTime,
+        VideoCapture,
+        Last
+    };
+
     public enum CamSwitchModeTypes { FocusAtIncident = -3, FocusAtLeader = -2, FocusAtExciting = -1, FocusAtDriver = 0 };
     public enum CameraStateTypes { None = 0x0000, IsSessionScreen = 0x0001, IsScenicActive = 0x0002, CamToolActive = 0x0004, UIHidden = 0x0008, UseAutoShotSelection = 0x0010, UseTemporaryEdits = 0x0020, UseKeyAcceleration = 0x0040, UseKey10xAcceleration = 0x0080, UseMouseAimMode = 0x0100 };
     public enum ReplayPositionModeTypes { Begin = 0, Current, End };
@@ -27,10 +45,26 @@ namespace iRSDKSharp
         LR = 5,
         RR = 6,
         ClearTires = 7,
-        FastRepair = 8
+        FastRepair = 8,
+        ClearWS = 9,
+        ClearFR = 10,
+        ClearFuel = 11,
+        TC = 12
     };
 
     public enum TelemCommandModeTypes { Stop = 0, Start, Restart };
+
+    public enum FFBCommandModeTypes { MaxForce = 0 };
+
+    public enum VideoCaptureModeTypes
+    {
+        TriggerScreenShot = 0,
+        StartVideoCapture,
+        EndVideoCapture,
+        ToggleVideoCapture,
+        ShowVideoTimer,
+        HideVideoTimer
+    };
 
     public class Defines
     {
@@ -52,6 +86,7 @@ namespace iRSDKSharp
         //VarHeader offsets
         public const int VarOffsetOffset = 4;
         public const int VarCountOffset = 8;
+        public const int VarCountAsTimeOffset = 12;
         public const int VarNameOffset = 16;
         public const int VarDescOffset = 48;
         public const int VarUnitOffset = 112;
@@ -107,6 +142,7 @@ namespace iRSDKSharp
                 int type = FileMapView.ReadInt32(Header.VarHeaderOffset + ((i * VarHeaderSize)));
                 int offset = FileMapView.ReadInt32(Header.VarHeaderOffset + ((i * VarHeaderSize) + VarOffsetOffset));
                 int count = FileMapView.ReadInt32(Header.VarHeaderOffset + ((i * VarHeaderSize) + VarCountOffset));
+                bool countAsTime = FileMapView.ReadByte(Header.VarHeaderOffset + ((i * VarHeaderSize) + VarCountAsTimeOffset)) != 0;
                 byte[] name = new byte[Defines.MaxString];
                 byte[] desc = new byte[Defines.MaxDesc];
                 byte[] unit = new byte[Defines.MaxString];
@@ -116,7 +152,7 @@ namespace iRSDKSharp
                 string nameStr = System.Text.Encoding.Default.GetString(name).TrimEnd(new char[] { '\0' });
                 string descStr = System.Text.Encoding.Default.GetString(desc).TrimEnd(new char[] { '\0' });
                 string unitStr = System.Text.Encoding.Default.GetString(unit).TrimEnd(new char[] { '\0' });
-                VarHeaders[nameStr] = new CVarHeader(type, offset, count, nameStr, descStr, unitStr);
+                VarHeaders[nameStr] = new CVarHeader(type, offset, count, countAsTime, nameStr, descStr, unitStr);
             }
         }
 
@@ -246,6 +282,17 @@ namespace iRSDKSharp
             return result.ToInt32();
         }
 
+        /// <summary>
+        /// Send a broadcast message with a float parameter. The float is encoded into
+        /// the message as a fixed point value (var2 * 65536), matching irsdk_broadcastMsg.
+        /// </summary>
+        public int BroadcastMessage(BroadcastMessageTypes msg, int var1, float var2)
+        {
+            // multiply by 2^16 to move fractional part to the integer part
+            int real = (int)(var2 * 65536.0f);
+            return BroadcastMessage(msg, var1, real);
+        }
+
         [DllImport("user32.dll")]
         private static extern IntPtr RegisterWindowMessage(string lpProcName);
 
@@ -272,6 +319,26 @@ namespace iRSDKSharp
         {
             return (short)dword;
         }
+
+        /// <summary>
+        /// Add a leading zero (or zeros) to a car number.
+        /// To encode car #001 call PadCarNum(1, 2).
+        /// </summary>
+        public static int PadCarNum(int num, int zero)
+        {
+            int retVal = num;
+            int numPlace = 1;
+            if (num > 99)
+                numPlace = 3;
+            else if (num > 9)
+                numPlace = 2;
+            if (zero != 0)
+            {
+                numPlace += zero;
+                retVal = num + 1000 * numPlace;
+            }
+            return retVal;
+        }
     }
 
     //144 bytes
@@ -284,8 +351,10 @@ namespace iRSDKSharp
         public int offset;
         //offset = 8
         public int count;
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 1)]
-        public int[] pad;
+        //offset = 12 (bool, stored as 1 byte to keep the 16-byte layout)
+        public byte countAsTime;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
+        public byte[] pad;
 
         //32 bytes: offset = 16
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = Defines.MaxString)]
@@ -304,7 +373,8 @@ namespace iRSDKSharp
     {
         public int tickCount;
         public int bufOffset;
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
+        public int tickCountBegin;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 1)]
         public int[] pad;
     }
 
@@ -324,12 +394,14 @@ namespace iRSDKSharp
         //8 bytes: offset = 24
         public int numVars;
         public int varHeaderOffset;
-        
-        //16 bytes: offset = 32
+
+        //8 bytes: offset = 32
         public int numBuf;
         public int bufLen;
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
-        public int[] pad1;
+        public int curBufTickCount;
+        public byte curBuf;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
+        public byte[] pad1;
 
         //128 bytes: offset = 48
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = Defines.MaxBufs)]

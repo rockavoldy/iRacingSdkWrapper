@@ -11,15 +11,17 @@ namespace iRSDKSharp
         VarType type;
         int offset;
         int count;
+        bool countAsTime;
         string name;
         string desc;
         string unit;
 
-        public CVarHeader(int type, int offset, int count, string name, string desc, string unit)
+        public CVarHeader(int type, int offset, int count, bool countAsTime, string name, string desc, string unit)
         {
             this.type = (VarType)type;
             this.offset = offset;
             this.count = count;
+            this.countAsTime = countAsTime;
             this.name = name;
             this.desc = desc;
             this.unit = unit;
@@ -41,6 +43,11 @@ namespace iRSDKSharp
         {
             get { return count; }
             //set { count = value; }
+        }
+
+        public bool CountAsTime
+        {
+            get { return countAsTime; }
         }
 
         public string Name

@@ -114,7 +114,22 @@ namespace iRacingSdkWrapper
                                     this.PlayerCarTeamIncidentCount,
                                     this.PlayerCarMyIncidentCount,
                                     this.PlayerTrackSurface,
-                                    this.PlayerCarIdx
+                                    this.PlayerCarIdx,
+                                    this.CarIdxLastLapTime,
+                                    this.CarIdxBestLapTime,
+                                    this.CarIdxBestLapNum,
+                                    this.CarIdxTrackSurfaceMaterial,
+                                    this.CarIdxP2P_Status,
+                                    this.CarIdxP2P_Count,
+                                    this.PaceMode,
+                                    this.CarIdxPaceLine,
+                                    this.CarIdxPaceRow,
+                                    this.CarIdxPaceFlags,
+                                    this.SessionLapsRemain,
+                                    this.SessionLapsRemainEx,
+                                    this.SessionTick,
+                                    this.SessionTimeOfDay,
+                                    this.PitsOpen
                                 });
             return values;
         }
@@ -556,5 +571,81 @@ namespace iRacingSdkWrapper
         public TelemetryValue<TrackSurfaces> PlayerTrackSurface { get { return new TelemetryValue<TrackSurfaces>(sdk, "PlayerTrackSurface"); } }
 
         public TelemetryValue<int> PlayerCarIdx { get { return new TelemetryValue<int>(sdk, "PlayerCarIdx"); } }
+
+
+        /// <summary>
+        /// Cars last lap time by car index. Unit: s
+        /// </summary>
+        public TelemetryValue<float[]> CarIdxLastLapTime { get { return new TelemetryValue<float[]>(sdk, "CarIdxLastLapTime"); } }
+
+        /// <summary>
+        /// Cars best lap time by car index. Unit: s
+        /// </summary>
+        public TelemetryValue<float[]> CarIdxBestLapTime { get { return new TelemetryValue<float[]>(sdk, "CarIdxBestLapTime"); } }
+
+        /// <summary>
+        /// Cars best lap number by car index.
+        /// </summary>
+        public TelemetryValue<int[]> CarIdxBestLapNum { get { return new TelemetryValue<int[]>(sdk, "CarIdxBestLapNum"); } }
+
+        /// <summary>
+        /// Track surface material type by car index. Unit: irsdk_TrkSurf
+        /// </summary>
+        public TelemetryValue<TrackSurfaceMaterials[]> CarIdxTrackSurfaceMaterial { get { return new TelemetryValue<TrackSurfaceMaterials[]>(sdk, "CarIdxTrackSurfaceMaterial"); } }
+
+        /// <summary>
+        /// Push2Pass active or not by car index.
+        /// </summary>
+        public TelemetryValue<bool[]> CarIdxP2P_Status { get { return new TelemetryValue<bool[]>(sdk, "CarIdxP2P_Status"); } }
+
+        /// <summary>
+        /// Push2Pass count of usage (or remaining in race) by car index.
+        /// </summary>
+        public TelemetryValue<int[]> CarIdxP2P_Count { get { return new TelemetryValue<int[]>(sdk, "CarIdxP2P_Count"); } }
+
+        /// <summary>
+        /// Are we pacing or not. Unit: irsdk_PaceMode
+        /// </summary>
+        public TelemetryValue<PaceModes> PaceMode { get { return new TelemetryValue<PaceModes>(sdk, "PaceMode"); } }
+
+        /// <summary>
+        /// What line cars are pacing in, or -1 if not pacing, by car index.
+        /// </summary>
+        public TelemetryValue<int[]> CarIdxPaceLine { get { return new TelemetryValue<int[]>(sdk, "CarIdxPaceLine"); } }
+
+        /// <summary>
+        /// What row cars are pacing in, or -1 if not pacing, by car index.
+        /// </summary>
+        public TelemetryValue<int[]> CarIdxPaceRow { get { return new TelemetryValue<int[]>(sdk, "CarIdxPaceRow"); } }
+
+        /// <summary>
+        /// Pacing status flags for each car. Unit: irsdk_PaceFlags
+        /// </summary>
+        public TelemetryValue<PaceFlag[]> CarIdxPaceFlags { get { return new TelemetryValue<PaceFlag[]>(sdk, "CarIdxPaceFlags"); } }
+
+        /// <summary>
+        /// Laps left till session ends.
+        /// </summary>
+        public TelemetryValue<int> SessionLapsRemain { get { return new TelemetryValue<int>(sdk, "SessionLapsRemain"); } }
+
+        /// <summary>
+        /// New improved laps left till session ends.
+        /// </summary>
+        public TelemetryValue<int> SessionLapsRemainEx { get { return new TelemetryValue<int>(sdk, "SessionLapsRemainEx"); } }
+
+        /// <summary>
+        /// Current update number.
+        /// </summary>
+        public TelemetryValue<int> SessionTick { get { return new TelemetryValue<int>(sdk, "SessionTick"); } }
+
+        /// <summary>
+        /// Time of day in seconds. Unit: s
+        /// </summary>
+        public TelemetryValue<float> SessionTimeOfDay { get { return new TelemetryValue<float>(sdk, "SessionTimeOfDay"); } }
+
+        /// <summary>
+        /// True if pit stop is allowed, basically true if caution lights not out.
+        /// </summary>
+        public TelemetryValue<bool> PitsOpen { get { return new TelemetryValue<bool>(sdk, "PitsOpen"); } }
     }
 }

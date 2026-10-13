@@ -27,6 +27,21 @@ namespace iRacingSimulator.Drivers
         public int Lap { get; private set; }
         public float LapDistance { get; private set; }
 
+        /// <summary>
+        /// The car's last lap time in seconds, or -1 if not yet completed a lap.
+        /// </summary>
+        public float LastLapTime { get; private set; }
+
+        /// <summary>
+        /// The car's best lap time in seconds, or -1 if not yet completed a lap.
+        /// </summary>
+        public float BestLapTime { get; private set; }
+
+        /// <summary>
+        /// The lap number of the car's best lap.
+        /// </summary>
+        public int BestLapNum { get; private set; }
+
         public float TotalLapDistance
         {
             get { return Lap + LapDistance; }
@@ -56,6 +71,14 @@ namespace iRacingSimulator.Drivers
             this.Gear = e.CarIdxGear.Value[this.Driver.Id];
             this.Rpm = e.CarIdxRPM.Value[this.Driver.Id];
             this.SteeringAngle = e.CarIdxSteer.Value[this.Driver.Id];
+
+            // New in irsdk 1.20: per-car lap times are now exposed directly.
+            if (e.CarIdxLastLapTime.Exists && e.CarIdxLastLapTime.Value != null)
+                this.LastLapTime = e.CarIdxLastLapTime.Value[this.Driver.Id];
+            if (e.CarIdxBestLapTime.Exists && e.CarIdxBestLapTime.Value != null)
+                this.BestLapTime = e.CarIdxBestLapTime.Value[this.Driver.Id];
+            if (e.CarIdxBestLapNum.Exists && e.CarIdxBestLapNum.Value != null)
+                this.BestLapNum = e.CarIdxBestLapNum.Value[this.Driver.Id];
 
             this.Driver.PitInfo.CalculatePitInfo(e.SessionTime.Value);
         }

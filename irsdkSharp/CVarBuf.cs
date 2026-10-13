@@ -28,27 +28,63 @@ namespace iRSDKSharp
             VarBufSize = Marshal.SizeOf(typeof(VarBuf));
         }
 
+        /// <summary>
+        /// The tick count of the most recently written buffer.
+        /// </summary>
+        public int TickCount
+        {
+            get
+            {
+                return FileMapView.ReadInt32(VarBufOffset + ((Latest * VarBufSize) + VarTickCountOffset));
+            }
+        }
+
+        /// <summary>
+        /// The tick count that is updated before a write starts, used to detect
+        /// torn reads (a write that was in progress while reading).
+        /// </summary>
+        public int TickCountBegin
+        {
+            get
+            {
+                return FileMapView.ReadInt32(VarBufOffset + ((Latest * VarBufSize) + VarTickCountOffset + 4 + 4));
+            }
+        }
+
+        /// <summary>
+        /// Index of the most recently written buffer as reported by the header.
+        /// Falls back to buffer 0 if the value is out of range.
+        /// </summary>
+        public int Latest
+        {
+            get
+            {
+                int latest = Header.CurBuf;
+                if (latest < 0 || latest >= Header.BufferCount)
+                    latest = 0;
+                return latest;
+            }
+        }
+
+        /// <summary>
+        /// Byte offset of the most recently written buffer.
+        /// </summary>
         public int OffsetLatest
         {
             get
             {
-                int bufCount = Header.BufferCount;
-                int[] ticks = new int[Header.BufferCount];
-                for (int i = 0; i < bufCount; i++)
-                {
-                    ticks[i] = FileMapView.ReadInt32(VarBufOffset + ((i * VarBufSize) + VarTickCountOffset));
-                }
-                int latestTick = ticks[0];
-                int latest = 0;
-                for (int i = 0; i < bufCount; i++)
-                {
-                    if (latestTick < ticks[i])
-                    {
-                        latest = i;
-                    }
-                }
-                return FileMapView.ReadInt32(VarBufOffset + ((latest * VarBufSize) + VarBufOffsetOffset));
+                return FileMapView.ReadInt32(VarBufOffset + ((Latest * VarBufSize) + VarBufOffsetOffset));
             }
+        }
+
+        /// <summary>
+        /// Byte offset of the buffer at the specified index.
+        /// </summary>
+        public int Offset(int index)
+        {
+            if (index < 0 || index >= Header.BufferCount)
+                index = 0;
+            return FileMapView.ReadInt32(VarBufOffset + ((index * VarBufSize) + VarBufOffsetOffset));
         }
     }
 }
